@@ -1,5 +1,5 @@
 defmodule Chatbot.Chatbot do
-    @moduledoc """
+  @moduledoc """
   The Chatbot context.
   """
   import Ecto.Query, warn: false
@@ -7,6 +7,18 @@ defmodule Chatbot.Chatbot do
 
   alias Chatbot.Chatbot.Conversation
   alias Chatbot.Chatbot.Message
+  alias Chatbot.Chatbot.OpenaiService
+
+  def generate_response(conversation, messages) do
+    last_five_messages =
+      Enum.slice(messages, 0..4)
+      |> Enum.map(fn %{role: role, content: content} ->
+        %{"role" => role, "content" => content}
+      end)
+      |> Enum.reverse()
+
+    create_message(conversation, OpenaiService.call(last_five_messages))
+  end
 
   def list_chatbot_conversations do
     Repo.all(Conversation)
@@ -25,6 +37,8 @@ defmodule Chatbot.Chatbot do
   end
 
   def create_message(conversation, attrs \\ %{}) do
+    conversation
+    |> IO.inspect(label: "conersation: ")
     %Message{}
     |> Message.changeset(attrs)
     |> Ecto.Changeset.put_assoc(:conversation, conversation)
@@ -32,6 +46,6 @@ defmodule Chatbot.Chatbot do
   end
 
   def change_message(%Message{} = message, attrs \\ %{}) do
-    Message.changeset(message,    attrs)
+    Message.changeset(message, attrs)
   end
 end

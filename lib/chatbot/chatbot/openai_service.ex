@@ -1,7 +1,7 @@
 defmodule Chatbot.Chatbot.OpenaiService do
   defp default_system_prompt do
     """
-    You are a chatbot that only answers questions about the programming language Elixir.
+    You are a chatbot that only answers questions about the programming language C.
     Answer short with just a 1-3 sentences.
     If the question is about another programming language, make a joke about it.
     If the question is about something else, answer something like:
@@ -46,7 +46,7 @@ defmodule Chatbot.Chatbot.OpenaiService do
   defp headers do
     [
       {"Content-Type", "application/json"},
-      {"Authorization", "Bearer #{Application.get_env(:Chatbot, :open_ai_api_key)}"},
+      {"Authorization", "Bearer #{File.read!(".env")}"},
     ]
   end
 end
