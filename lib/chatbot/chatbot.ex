@@ -9,7 +9,7 @@ defmodule Chatbot.Chatbot do
   alias Chatbot.Chatbot.Message
   alias Chatbot.Chatbot.OpenaiService
 
-  def generate_response(conversation, messages) do
+  def generate_chat_response(conversation, messages) do
     last_five_messages =
       Enum.slice(messages, 0..4)
       |> Enum.map(fn %{role: role, content: content} ->
@@ -17,7 +17,18 @@ defmodule Chatbot.Chatbot do
       end)
       |> Enum.reverse()
 
-    create_message(conversation, OpenaiService.call(last_five_messages))
+    create_message(conversation, OpenaiService.call_chat(last_five_messages))
+  end
+
+  def generate_image_response(conversation, messages) do
+    last_five_messages =
+      Enum.slice(messages, 0..4)
+      |> Enum.map(fn %{role: role, content: content} ->
+        %{"role" => role, "content" => content}
+      end)
+      |> Enum.reverse()
+
+    create_message(conversation, OpenaiService.call_image(last_five_messages))
   end
 
   def list_chatbot_conversations do
@@ -37,8 +48,6 @@ defmodule Chatbot.Chatbot do
   end
 
   def create_message(conversation, attrs \\ %{}) do
-    conversation
-    |> IO.inspect(label: "conersation: ")
     %Message{}
     |> Message.changeset(attrs)
     |> Ecto.Changeset.put_assoc(:conversation, conversation)
