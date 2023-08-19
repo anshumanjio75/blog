@@ -24,7 +24,7 @@ defmodule ChatbotWeb.ChatbotLive do
       socket
       |> assign(:conversation, conversation)
       |> assign(:message, %Chatbot.Message{})
-      |> assign(:messages, [])
+      |> assign(:messages, conversation.messages)
     }
   end
 
@@ -32,13 +32,15 @@ defmodule ChatbotWeb.ChatbotLive do
   def handle_info({ChatbotWeb.ChatbotLive.FormComponent, {:saved, message}}, socket) do
     messages = [message | socket.assigns.messages]
 
+    # Chatbot.save_old_pictures(socket.assigns.conversation)
+
     Task.async(fn ->
       Chatbot.generate_image_response(socket.assigns.conversation, messages)
     end)
 
-    Task.async(fn ->
-      Chatbot.generate_chat_response(socket.assigns.conversation, messages)
-    end)
+    # Task.async(fn ->
+    #   Chatbot.generate_chat_response(socket.assigns.conversation, messages)
+    # end)
 
     {
       :noreply,
@@ -84,7 +86,12 @@ defmodule ChatbotWeb.ChatbotLive do
             <div :if={message.role == "user"} class="flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end">
               <div>
                 <div class="bg-blue-600 text-white p-3 rounded-l-lg rounded-br-lg">
-                  <p class="text-sm"><%= message.content %></p>
+                  <%= case message.content |> String.length() > 300 do %>
+                    <% true -> %>
+                     <%= "<a href='data:image/jpg;base64, #{message.content}' download='nature_#{message.id}.jpg'><img src='data:image/jpg;base64, #{message.content}' alt='image'/></a>" |> Phoenix.HTML.raw() %>
+                    <% _ -> %>
+                      <p class="text-sm"><%= message.content %></p>
+                  <% end %>
                 </div>
                 <span class="text-xs text-gray-500 leading-none">Now</span>
               </div>
@@ -96,8 +103,10 @@ defmodule ChatbotWeb.ChatbotLive do
               <div>
                 <div class="bg-gray-300 p-3 rounded-r-lg rounded-bl-lg">
                   <%= case message.content |> String.split(", ") do %>
-                    <% arr when is_list(arr) and binary_part(hd(arr), 0, 4) == "http" -> %>
-                      <%= arr |> Enum.map(& "<a href='#{&1}'> <img src='#{&1}' alt='#{&1}'> </a>" |> Phoenix.HTML.raw())%>
+                    <% arr when binary_part(hd(arr), 0, 4) == "http" -> %>
+                      <%= arr |> Enum.map(& "<a href='#{&1}' target='_blank'> <img src='#{&1}' alt='#{&1}'> </a>" |> Phoenix.HTML.raw())%>
+                    <% arr when binary_part(hd(arr), 0, 4) == "/9j/" -> %>
+                      <%= "<a href='data:image/jpg;base64, #{message.content}' download='nature_#{message.id}.jpg'><img src='data:image/jpg;base64, #{message.content}' alt='image'/></a>" |> Phoenix.HTML.raw() %>
                     <% _ -> %>
                       <p class="text-sm"><%= message.content %></p>
                   <% end %>

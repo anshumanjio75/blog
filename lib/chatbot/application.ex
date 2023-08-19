@@ -15,7 +15,7 @@ defmodule Chatbot.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Chatbot.PubSub},
       # Start Finch
-      {Finch, name: Chatbot.Finch},
+      {Finch, name: Chatbot.Chatbot.Finch},
       # Start the Endpoint (http/https)
       ChatbotWeb.Endpoint
       # Start a worker by calling: Chatbot.Worker.start_link(arg)
